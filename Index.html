@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolunteerLink - Live Brampton Production System</title>
+    <style>
+        :root {
+            --dark: #111111;
+            --light: #fdfdfd;
+            --border: #222222;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --gray-bg: #f3f4f6;
+            --text-muted: #555555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            padding-bottom: 60px;
+        }
+
+        nav {
+            background-color: var(--dark);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .brand { font-size: 14px; font-weight: bold; }
+        .status-badge { background-color: var(--success); padding: 4px 8px; font-size: 11px; font-weight: bold; }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            min-height: calc(100vh - 52px);
+        }
+
+        .sidebar {
+            border-right: 3px solid var(--border);
+            padding: 24px;
+            background-color: var(--light);
+        }
+
+        .panel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            background: var(--dark);
+            color: white;
+            padding: 4px 8px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .profile-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 11px; font-weight: bold; text-transform: uppercase; }
+
+        input, select {
+            border: 2px solid var(--border);
+            padding: 8px;
+            font-size: 13px;
+            outline: none;
+            background: transparent;
+        }
+
+        .btn-action {
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .btn-action:hover { background-color: var(--primary); }
+
+        .hours-dashboard {
+            border: 2px solid var(--border);
+            padding: 16px;
+            background-color: var(--gray-bg);
+        }
+
+        .stat-display { font-size: 40px; font-weight: 900; line-height: 1; margin: 8px 0; }
+        .progress-bar-container { border: 2px solid var(--border); height: 16px; background: white; margin-top: 10px; }
+        .progress-fill { height: 100%; background-color: var(--success); width: 0%; transition: width 0.3s ease; }
+
+        .main-content { padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+        .tab-navigation { display: flex; border-bottom: 3px solid var(--border); }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 24px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-top: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+
+        .tab-btn.active {
+            border: 3px solid var(--border);
+            border-bottom: 3px solid var(--light);
+            background: var(--light);
+            border-top: 3px solid var(--primary);
+        }
+
+        .filter-strip {
+            display: flex;
+            gap: 16px;
+            align-items: flex-end;
+            padding: 16px;
+            background: var(--gray-bg);
+            border: 2px solid var(--border);
+        }
+
+        .filter-item { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+
+        .google-maps-iframe-container {
+            border: 3px solid var(--border);
+            width: 100%;
+            height: 300px;
+            background-color: #e5e7eb;
+        }
+
+        .google-maps-iframe-container iframe { width: 100%; height: 100%; border: 0; }
+
+        .view-panel { display: none; }
+        .view-panel.active-panel { display: block; }
+
+        .opportunities-shelf {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .opportunity-card {
+            border: 2px solid var(--border);
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            padding: 12px;
+            border-bottom: 1px dashed var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-group { display: flex; gap: 4px; flex-wrap: wrap; }
+
+        .interest-tag {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+        }
+
+        .diff-tag { background: #eee; border-color: #ccc; }
+
+        .hours-badge {
+            font-size: 11px;
+            font-weight: bold;
+            background: var(--dark);
+            color: white;
+            padding: 2px 6px;
+            white-space: nowrap;
+        }
+
+        .card-body { padding: 12px; flex-grow: 1; }
+        .card-body h3 { font-size: 14px; margin-bottom: 6px; }
+        .card-body p { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.4; }
+        .meta-line { font-size: 11px; margin-bottom: 3px; }
+
+        .card-footer { padding: 12px; background: var(--gray-bg); border-top: 2px solid var(--border); }
+
+        .btn-trigger {
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .btn-register-action { background-color: var(--primary); }
+        .btn-complete-action { background-color: var(--warning); }
+
+        .status-pill {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            text-transform: uppercase;
+            border: 1px solid var(--border);
+        }
+
+        .status-pill.pending { background: #ffedd5; color: #ea580c; }
+        .status-pill.done { background: #dcfce7; color: #16a34a; }
+
+        .reminder-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #fef08a;
+            border: 2px solid var(--border);
+            padding: 12px;
+            max-width: 320px;
+            display: none;
+            box-shadow: 4px 4px 0px var(--border);
+            z-index: 200;
+            font-size: 12px;
+        }
+
+        .no-records {
+            grid-column: 1 / -1;
+            padding: 32px;
+            text-align: center;
+            border: 2px dashed var(--border);
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand">VOLINK - LIVE BRAMPTON GEOGRAPHIC SYSTEM</div>
+        <div class="status-badge">PRODUCTION VERIFIED</div>
+    </nav>
+
+    <div class="app-grid">
+        <aside class="sidebar">
+            <span class="panel-title">1. Student Profile Context</span>
+            <form class="profile-form" id="profileForm" onsubmit="event.preventDefault(); updateProfile();">
+                <div class="form-group">
+                    <label for="studentName">Student Name</label>
+                    <input type="text" id="studentName" value="Alex Mercer" required>
+                </div>
+                <div class="form-group">
+                    <label for="targetHours">Target Goal Milestone</label>
+                    <input type="number" id="targetHours" value="40" min="1" required>
+                </div>
+                <button type="submit" class="btn-action">Update Core Accounts</button>
+            </form>
+
+            <span class="panel-title">3. Verified Audit Ledger</span>
+            <div class="hours-dashboard">
+                <label id="displayStudent">Alex Mercer's Balance</label>
+                <div class="stat-display"><span id="currentHours">0</span>/<span id="goalHours">40</span></div>
+                <div class="meta-line" style="font-weight: bold; color: var(--success);" id="percentText">0% Verified & Credited</div>
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('available', this)">Available Tasks</button>
+                <button class="tab-btn" onclick="switchTab('registrations', this)">My Registrations (<span id="regCount">0</span>)</button>
+            </div>
+
+            <div id="panelAvailable" class="view-panel active-panel">
+                <div class="map-outer-wrap">
+                    <label>Live City View:</label>
+                    <div class="google-maps-iframe-container">
+                        <iframe id="liveGMap" src="https://maps.google.com/maps?q=Brampton&t=&z=13&ie=UTF8&iwloc=&output=embed" allowfullscreen="" loading="lazy"></iframe>
+                    </div>
+                </div>
+
+                <div class="filter-strip" style="margin-top: 16px;">
+                    <div class="filter-item">
+                        <label>Interests/Category</label>
+                        <select id="catFilter" onchange="runGlobalFilter()">
+                            <option value="all">All Interests</option>
+                            <option value="Environment">Environment</option>
+                            <option value="Recreation">Recreation</option>
+                            <option value="Community">Community</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Grocery">Grocery</option>
+                            <option value="Education">Education</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Difficulty</label>
+                        <select id="diffFilter" onchange="runGlobalFilter()">
+                            <option value="all">All Difficulty</option>
+                            <option value="Easy">Easy</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Hard">Hard</option>
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label>Time Commitment</label>
+                        <select id="timeFilter" onchange="runGlobalFilter()">
+                            <option value="all">Any Duration</option>
+                            <option value="Short Term">Short Term (< 5h)</option>
+                            <option value="Long Term">Long Term (5h+)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="opportunities-shelf" id="availableContainer"></div>
+            </div>
+           
+            <div id="panelRegistrations" class="view-panel">
+                <div class="opportunities-shelf" id="registrationsContainer"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="reminder-box" id="reminderAlert">
+        <div style="font-weight: bold; color: var(--primary); margin-bottom: 4px;">📡 SYSTEM EVENT LOGGER</div>
+        <div id="reminderMessage"></div>
+    </div>
+
+    <script>
+        const appState = {
+            studentName: "Alex Mercer",
+            targetHours: 40,
+            completedHours: 0,
+            filters: { category: "all", difficulty: "all", commitment: "all" }
+        };
+
+        // ENHANCED DATABASE WITH NEW METADATA
+        const realBramptonDatabase = [
+            { id: 1, title: "Conservation Trail Maintenance", category: "Environment", difficulty: "Hard", commitment: "Short Term", location: "Chinguacousy Park, 9050 Bramalea Rd", hours: 4, description: "Sorting recycling drop-offs and cleanup along loops." },
+            { id: 2, title: "Youth Basketball Aide", category: "Recreation", difficulty: "Medium", commitment: "Long Term", location: "Gore Meadows, 10150 The Gore Rd", hours: 5, description: "Equipment setup and score monitoring for youth brackets." },
+            { id: 3, title: "Afterschool Math Tutor", category: "Education", difficulty: "Medium", commitment: "Short Term", location: "Mount Pleasant Library, 100 Commuter Dr", hours: 3, description: "Direct support for primary school math students." },
+            { id: 4, title: "Food Bank Inventory", category: "Community", difficulty: "Medium", commitment: "Long Term", location: "Regeneration Outreach, 156 Main St N", hours: 6, description: "Sort food drives and stock essential hampers." },
+            { id: 7, title: "Brampton Civic Hospital Aide", category: "Healthcare", difficulty: "Hard", commitment: "Long Term", location: "2100 Bovaird Dr E", hours: 10, description: "Administrative support in clinical pathways." },
+            { id: 8, title: "Senior Grocery Delivery", category: "Grocery", difficulty: "Easy", commitment: "Short Term", location: "Various Brampton Nodes", hours: 4, description: "Help deliver essential goods to homebound seniors." },
+            { id: 11, title: "Heart Lake Cleanup", category: "Environment", difficulty: "Easy", commitment: "Short Term", location: "10818 Heart Lake Rd", hours: 4, description: "Litter collection and natural area preservation." },
+            { id: 13, title: "Animal Shelter Care", category: "Community", difficulty: "Hard", commitment: "Long Term", location: "20350 Heart Lake Rd", hours: 5, description: "Feeding and socializing animals under supervision." },
+            { id: 16, title: "Community Garden Keeper", category: "Environment", difficulty: "Easy", commitment: "Long Term", location: "50 Main St S, Brampton", hours: 4, description: "Planting and weeding community plots." },
+            { id: 23, title: "Tech Support Assistant", category: "Education", difficulty: "Hard", commitment: "Short Term", location: "North East Library, 70 Westwind Dr", hours: 3, description: "One-on-one tech guidance for local patrons." },
+            { id: 24, title: "Health Clinic Admin", category: "Healthcare", difficulty: "Medium", commitment: "Long Term", location: "40 Ray Lawson Blvd", hours: 5, description: "Supporting front-desk patient flow." }
+            ,{ id: 1, title: "Conservation Trail & Grounds Maintenance", category: "Environment", location: "Chinguacousy Park, 9050 Bramalea Rd, Brampton", hours: 4, description: "Assist environmental staff in sorting recycling drop-offs and cleanup operations along primary trail loops." },
+            { id: 2, title: "Youth Community Sports Coordination Aide", category: "Recreation", location: "Gore Meadows Community Centre, 10150 The Gore Rd, Brampton", hours: 5, description: "Help setup equipment and monitor active scoring infrastructure for regional youth basketball brackets." },
+            { id: 3, title: "Afterschool Peer Tutoring & Reading Mentor", category: "Community", location: "Brampton Library - Mount Pleasant Village Branch, 100 Commuter Dr, Brampton", hours: 3, description: "Provide direct study circle support to primary grade school students struggling with math homework cycles." },
+            { id: 4, title: "Food Sortation & Inventory Allocation", category: "Community", location: "Regeneration Outreach Community, 156 Main St N, Brampton", hours: 6, description: "Sort incoming regional food drives and stock essential nutritional hampers for local distribution pathways." },
+            { id: 5, title: "Aquatic Event Assistant & Equipment Supervisor", category: "Recreation", location: "Cassie Campbell Community Centre, 1050 Sandalwood Pkwy W, Brampton", hours: 4, description: "Support local swim event check-ins, handout logs, and maintain deck perimeter logistics." },
+            { id: 6, title: "Tech Literacy Circle Support Leader", category: "Community", location: "Brampton Library - Springdale Branch, 10705 Bramalea Rd, Brampton", hours: 3, description: "Guide senior citizens through local library app access steps, email setups, and essential desktop navigation safety." },
+            { id: 7, title: "Brampton Civic Hospital", category: "Healthcare", location: " 2100 Bovaird Dr E, Brampton, ON L6R 3J7", hours: 10, description: "Assist healthcare staff in various administrative and support roles." },
+            { id: 8, title: "Grocery Delivery Support for Seniors", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Help deliver groceries to senior citizens who are unable to leave their homes." },
+            { id: 9, title: "Educational Workshop Assistant at Peel District School Board", category: "Education", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 5, description: "Support educational workshops and events organized by the Peel District School Board." },
+            { id: 10, title: "Brampton Food Bank Volunteer", category: "Community", location: "169 Main St N, Brampton", hours: 6, description: "Assist in sorting and distributing food donations at the Brampton Food Bank." },
+            {id: 11, title: "Brampton Parks Cleanup Crew", category: "Environment", location: "Heart Lake Conservation Area, 10818 Heart Lake Rd, Brampton", hours: 4, description: "Join the cleanup crew to help maintain the beauty of Brampton's parks and natural areas." },
+            { id: 12, title: "Community Event Setup at Brampton City Hall", category: "Community", location: "2 Wellington St W, Brampton", hours: 3, description: "Assist in setting up for community events and gatherings at Brampton City Hall." },
+            {id:13, title: "Brampton Animal Shelter Volunteer", category: "Community", location: "20350 Heart Lake Rd, Brampton", hours: 5, description: "Help care for animals at the Brampton Animal Shelter, including feeding, cleaning, and socializing with the animals." },
+            { id: 14, title: "Brampton Public Library Book Sorting", category: "Education", location: "Brampton Library - South Fletchers Branch, 65 Queen St S, Brampton", hours: 3, description: "Assist in sorting and organizing books at the Brampton Public Library." },
+            { id: 15, title: "Pharmacy", category: "Healthcare", location: "Brampton Pharmacy, 150 Dwyer Dr, Brampton", hours: 4, description: "Help maintain the community garden by planting, weeding, and watering the plants." },
+            {id: 16, title: "Brampton Community Garden Volunteer", category: "Environment", location: "Brampton Community Garden, 50 Main St S, Brampton", hours: 4, description: "Help maintain the community garden by planting, weeding, and watering the plants." },
+            {id: 17, title: "Brampton Senior Center Activity Assistant", category: "Community", location: "Brampton Senior Center, 129 Queen St E, Brampton", hours: 3, description: "Assist in organizing and facilitating activities for seniors at the Brampton Senior Center." },
+            {id: 18, title: "Brampton Youth Sports Coaching Assistant", category: "Recreation", location: "Brampton Soccer Centre, 1495 Sandalwood Pkwy E, Brampton", hours: 5, description: "Support youth sports coaching sessions by helping with drills, organizing equipment, and providing encouragement to young athletes." },
+            {id: 19, title: "Brampton Environmental Education Program Volunteer", category: "Environment", location: "Chinguacousy Park, 9050 Bramalea Rd, Brampton", hours: 4, description: "Assist in delivering environmental education programs to local schools and community groups at Chinguacousy Park." },
+            {id: 20, title: "Brampton Food Delivery Volunteer", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Help deliver groceries to families in need through local food delivery programs in Brampton." },
+            {id: 21, title: "Brampton Public Art Installation Support", category: "Community", location: "Various locations across Brampton", hours: 3, description: "Assist in setting up and supporting public art installations and events throughout the city of Brampton." },
+            {id: 22, title: "Brampton Community Outreach Volunteer", category: "Community", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 4, description: "Support community outreach initiatives by helping to distribute information and resources to local residents." },
+            {id: 23, title: "Brampton Public Library Tech Support Volunteer", category: "Education", location: "Brampton Library - North East Branch, 70 Westwind Dr, Brampton", hours: 3, description: "Assist library patrons with basic tech support and guidance on using library resources." },
+            {id: 24, title: "Brampton Community Health Clinic Volunteer", category: "Healthcare", location: "Brampton Community Health Centre, 40 Ray Lawson Blvd, Brampton", hours: 5, description: "Support the community health clinic by assisting with administrative tasks and patient support." },
+            {id: 25, title: "Brampton Youth Mentorship Program Volunteer", category: "Community", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 4, description: "Mentor local youth through the Brampton Youth Mentorship Program, providing guidance and support to help them achieve their goals." },
+            {id: 26, title: "Brampton Public Library Storytime Assistant", category: "Education", location: "Brampton Library - Mount Pleasant Village Branch, 100 Commuter Dr, Brampton", hours: 3, description: "Assist with children's storytime sessions at the Brampton Public Library, helping to engage young readers and foster a love of books." },
+            {id: 27, title: "Brampton Community Recycling Program Volunteer", category: "Environment", location: "Brampton Recycling Centre, 1290 Williams Pkwy, Brampton", hours: 4, description: "Support the community recycling program by helping to sort and manage recyclable materials at the Brampton Recycling Centre." },
+            {id: 28, title: "Brampton Senior Grocery Assistance Volunteer", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Assist senior citizens with grocery shopping and delivery through local assistance programs in Brampton." },
+            {id: 29, title: "Brampton Public Library Language Support Volunteer", category: "Education", location: "Brampton Library - Springdale Branch, 10705 Bramalea Rd, Brampton", hours: 3, description: "Provide language support and assistance to library patrons who are non-native English speakers." },
+            {id: 30, title: "Brampton Community Festival Volunteer", category: "Community", location: "Various locations across Brampton", hours: 5, description: "Help organize and support community festivals and events throughout the city of Brampton." },
+            {id: 31, title: "Brampton Public Library Homework Help Volunteer", category: "Education", location: "Brampton Library - South Fletchers Branch, 65 Queen St S, Brampton", hours: 3, description: "Assist students with homework and study support at the Brampton Public Library." },
+        { id: 1, title: "Conservation Trail & Grounds Maintenance", category: "Environment", location: "Chinguacousy Park, 9050 Bramalea Rd, Brampton", hours: 4, description: "Assist environmental staff in sorting recycling drop-offs and cleanup operations along primary trail loops." },
+            { id: 2, title: "Youth Community Sports Coordination Aide", category: "Recreation", location: "Gore Meadows Community Centre, 10150 The Gore Rd, Brampton", hours: 5, description: "Help setup equipment and monitor active scoring infrastructure for regional youth basketball brackets." },
+            { id: 3, title: "Afterschool Peer Tutoring & Reading Mentor", category: "Community", location: "Brampton Library - Mount Pleasant Village Branch, 100 Commuter Dr, Brampton", hours: 3, description: "Provide direct study circle support to primary grade school students struggling with math homework cycles." },
+            { id: 4, title: "Food Sortation & Inventory Allocation", category: "Community", location: "Regeneration Outreach Community, 156 Main St N, Brampton", hours: 6, description: "Sort incoming regional food drives and stock essential nutritional hampers for local distribution pathways." },
+            { id: 5, title: "Aquatic Event Assistant & Equipment Supervisor", category: "Recreation", location: "Cassie Campbell Community Centre, 1050 Sandalwood Pkwy W, Brampton", hours: 4, description: "Support local swim event check-ins, handout logs, and maintain deck perimeter logistics." },
+            { id: 6, title: "Tech Literacy Circle Support Leader", category: "Community", location: "Brampton Library - Springdale Branch, 10705 Bramalea Rd, Brampton", hours: 3, description: "Guide senior citizens through local library app access steps, email setups, and essential desktop navigation safety." },
+            { id: 7, title: "Brampton Civic Hospital", category: "Healthcare", location: " 2100 Bovaird Dr E, Brampton, ON L6R 3J7", hours: 10, description: "Assist healthcare staff in various administrative and support roles." },
+            { id: 8, title: "Grocery Delivery Support for Seniors", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Help deliver groceries to senior citizens who are unable to leave their homes." },
+            { id: 9, title: "Educational Workshop Assistant at Peel District School Board", category: "Education", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 5, description: "Support educational workshops and events organized by the Peel District School Board." },
+            { id: 10, title: "Brampton Food Bank Volunteer", category: "Community", location: "169 Main St N, Brampton", hours: 6, description: "Assist in sorting and distributing food donations at the Brampton Food Bank." },
+            {id: 11, title: "Brampton Parks Cleanup Crew", category: "Environment", location: "Heart Lake Conservation Area, 10818 Heart Lake Rd, Brampton", hours: 4, description: "Join the cleanup crew to help maintain the beauty of Brampton's parks and natural areas." },
+            { id: 12, title: "Community Event Setup at Brampton City Hall", category: "Community", location: "2 Wellington St W, Brampton", hours: 3, description: "Assist in setting up for community events and gatherings at Brampton City Hall." },
+            {id:13, title: "Brampton Animal Shelter Volunteer", category: "Community", location: "20350 Heart Lake Rd, Brampton", hours: 5, description: "Help care for animals at the Brampton Animal Shelter, including feeding, cleaning, and socializing with the animals." },
+            { id: 14, title: "Brampton Public Library Book Sorting", category: "Education", location: "Brampton Library - South Fletchers Branch, 65 Queen St S, Brampton", hours: 3, description: "Assist in sorting and organizing books at the Brampton Public Library." },
+            { id: 15, title: "Pharmacy", category: "Healthcare", location: "Brampton Pharmacy, 150 Dwyer Dr, Brampton", hours: 4, description: "Help maintain the community garden by planting, weeding, and watering the plants." },
+            {id: 16, title: "Brampton Community Garden Volunteer", category: "Environment", location: "Brampton Community Garden, 50 Main St S, Brampton", hours: 4, description: "Help maintain the community garden by planting, weeding, and watering the plants." },
+            {id: 17, title: "Brampton Senior Center Activity Assistant", category: "Community", location: "Brampton Senior Center, 129 Queen St E, Brampton", hours: 3, description: "Assist in organizing and facilitating activities for seniors at the Brampton Senior Center." },
+            {id: 18, title: "Brampton Youth Sports Coaching Assistant", category: "Recreation", location: "Brampton Soccer Centre, 1495 Sandalwood Pkwy E, Brampton", hours: 5, description: "Support youth sports coaching sessions by helping with drills, organizing equipment, and providing encouragement to young athletes." },
+            {id: 19, title: "Brampton Environmental Education Program Volunteer", category: "Environment", location: "Chinguacousy Park, 9050 Bramalea Rd, Brampton", hours: 4, description: "Assist in delivering environmental education programs to local schools and community groups at Chinguacousy Park." },
+            {id: 20, title: "Brampton Food Delivery Volunteer", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Help deliver groceries to families in need through local food delivery programs in Brampton." },
+            {id: 21, title: "Brampton Public Art Installation Support", category: "Community", location: "Various locations across Brampton", hours: 3, description: "Assist in setting up and supporting public art installations and events throughout the city of Brampton." },
+            {id: 22, title: "Brampton Community Outreach Volunteer", category: "Community", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 4, description: "Support community outreach initiatives by helping to distribute information and resources to local residents." },
+            {id: 23, title: "Brampton Public Library Tech Support Volunteer", category: "Education", location: "Brampton Library - North East Branch, 70 Westwind Dr, Brampton", hours: 3, description: "Assist library patrons with basic tech support and guidance on using library resources." },
+            {id: 24, title: "Brampton Community Health Clinic Volunteer", category: "Healthcare", location: "Brampton Community Health Centre, 40 Ray Lawson Blvd, Brampton", hours: 5, description: "Support the community health clinic by assisting with administrative tasks and patient support." },
+            {id: 25, title: "Brampton Youth Mentorship Program Volunteer", category: "Community", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 4, description: "Mentor local youth through the Brampton Youth Mentorship Program, providing guidance and support to help them achieve their goals." },
+            {id: 26, title: "Brampton Public Library Storytime Assistant", category: "Education", location: "Brampton Library - Mount Pleasant Village Branch, 100 Commuter Dr, Brampton", hours: 3, description: "Assist with children's storytime sessions at the Brampton Public Library, helping to engage young readers and foster a love of books." },
+            {id: 27, title: "Brampton Community Recycling Program Volunteer", category: "Environment", location: "Brampton Recycling Centre, 1290 Williams Pkwy, Brampton", hours: 4, description: "Support the community recycling program by helping to sort and manage recyclable materials at the Brampton Recycling Centre." },
+            {id: 28, title: "Brampton Senior Grocery Assistance Volunteer", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Assist senior citizens with grocery shopping and delivery through local assistance programs in Brampton." },
+            {id: 29, title: "Brampton Public Library Language Support Volunteer", category: "Education", location: "Brampton Library - Springdale Branch, 10705 Bramalea Rd, Brampton", hours: 3, description: "Provide language support and assistance to library patrons who are non-native English speakers." },
+            {id: 30, title: "Brampton Community Festival Volunteer", category: "Community", location: "Various locations across Brampton", hours: 5, description: "Help organize and support community festivals and events throughout the city of Brampton." },
+            {id: 31, title: "Brampton Public Library Homework Help Volunteer", category: "Education", location: "Brampton Library - South Fletchers Branch, 65 Queen St S, Brampton", hours: 3, description: "Assist students with homework and study support at the Brampton Public Library." }
+        
+        
+        
+        
+        
+        
+        
+        ];
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+
+
+        const userRegistrations = [];
+
+        window.onload = function() {
+            renderAvailableOpportunities();
+            renderRegistrations();
+            calculateMetrics();
+        };
+
+        function switchTab(tabTarget, tabButton) {
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".view-panel").forEach(panel => panel.classList.remove("active-panel"));
+            tabButton.classList.add("active");
+            
+            if (tabTarget === 'available') {
+                document.getElementById("panelAvailable").classList.add("active-panel");
+                renderAvailableOpportunities();
+            } else {
+                document.getElementById("panelRegistrations").classList.add("active-panel");
+                renderRegistrations();
+            }
+        }
+
+        // GLOBAL FILTER LOGIC
+        function runGlobalFilter() {
+            appState.filters.category = document.getElementById("catFilter").value;
+            appState.filters.difficulty = document.getElementById("diffFilter").value;
+            appState.filters.commitment = document.getElementById("timeFilter").value;
+            renderAvailableOpportunities();
+        }
+
+        function updateMapLocation(addressString) {
+            const mapIframe = document.getElementById("liveGMap");
+            mapIframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(addressString)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+        }
+
+        function renderAvailableOpportunities() {
+            const container = document.getElementById("availableContainer");
+            container.innerHTML = "";
+
+            let filtered = realBramptonDatabase.filter(op => {
+                const isNotRegistered = !userRegistrations.some(reg => reg.id === op.id);
+                const matchCat = appState.filters.category === "all" || op.category === appState.filters.category;
+                const matchDiff = appState.filters.difficulty === "all" || op.difficulty === appState.filters.difficulty;
+                const matchTime = appState.filters.commitment === "all" || op.commitment === appState.filters.commitment;
+                
+                return isNotRegistered && matchCat && matchDiff && matchTime;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="no-records">No opportunities match these specific criteria. Try broadening your filters.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "opportunity-card";
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="tag-group">
+                            <span class="interest-tag">${item.category}</span>
+                            <span class="interest-tag diff-tag">${item.difficulty}</span>
+                        </div>
+                        <span class="hours-badge">${item.hours} Hrs</span>
+                    </div>
+                    <div class="card-body" style="cursor: pointer;" onclick="updateMapLocation('${item.location}')">
+                        <h3>${item.title}</h3>
+                        <p style="font-size:10px; font-weight:bold; margin-bottom:4px;">⏱️ ${item.commitment}</p>
+                        <p>${item.description}</p>
+                        <div class="meta-line" style="color: var(--primary); font-size:10px;">📍 Click to View Map:</div>
+                        <div class="meta-line" style="font-size:10px; font-style:italic;">${item.location}</div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-trigger btn-register-action" onclick="registerOpportunity(${item.id})">Register For Role</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderRegistrations() {
+            const container = document.getElementById("registrationsContainer");
+            container.innerHTML = "";
+            document.getElementById("regCount").innerText = userRegistrations.length;
+
+            if (userRegistrations.length === 0) {
+                container.innerHTML = `<div class="no-records">No tracked shifts logged yet.</div>`;
+                return;
+            }
+
+            userRegistrations.forEach(item => {
+                const isPending = item.status === "pending";
+                const card = document.createElement("div");
+                card.className = "opportunity-card";
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="status-pill ${item.status}">${item.status}</span>
+                        <span class="hours-badge">${item.hours} Hrs</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>${item.title}</h3>
+                        <div class="meta-line"><strong>📍 Venue:</strong> ${item.location}</div>
+                    </div>
+                    <div class="card-footer">
+                        ${isPending ? `<button class="btn-trigger btn-complete-action" onclick="claimJobHours(${item.id})">Mark Completed</button>` 
+                        : `<button class="btn-trigger" style="background:#d1d5db; color:#4b5563; cursor:not-allowed;" disabled>✓ Hours Audited</button>`}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function registerOpportunity(id) {
+            const matchedItem = realBramptonDatabase.find(op => op.id === id);
+            if (matchedItem) {
+                userRegistrations.push({ ...matchedItem, status: "pending" });
+                triggerTelemetryAlert(`Registered: ${matchedItem.title}`);
+                renderAvailableOpportunities();
+                renderRegistrations();
+            }
+        }
+
+        function claimJobHours(id) {
+            const record = userRegistrations.find(reg => reg.id === id);
+            if (record && record.status === "pending") {
+                record.status = "done";
+                appState.completedHours += record.hours;
+                triggerTelemetryAlert(`Transaction confirmed! +${record.hours} hours added.`);
+                calculateMetrics();
+                renderRegistrations();
+            }
+        }
+
+        function calculateMetrics() {
+            document.getElementById("currentHours").innerText = appState.completedHours;
+            document.getElementById("goalHours").innerText = appState.targetHours;
+            document.getElementById("displayStudent").innerText = `${appState.studentName}'s Balance`;
+            const computedPercentage = Math.min(Math.round((appState.completedHours / appState.targetHours) * 100), 100);
+            document.getElementById("percentText").innerText = `${computedPercentage}% Verified & Credited`;
+            document.getElementById("progressFill").style.width = `${computedPercentage}%`;
+        }
+
+        function updateProfile() {
+            const enteredName = document.getElementById("studentName").value.trim();
+            const enteredHours = parseInt(document.getElementById("targetHours").value, 10);
+            if (enteredName) appState.studentName = enteredName;
+            if (enteredHours > 0) appState.targetHours = enteredHours;
+            calculateMetrics();
+            triggerTelemetryAlert("Account metadata updated.");
+        }
+
+        function triggerTelemetryAlert(messageText) {
+            const alertNode = document.getElementById("reminderAlert");
+            document.getElementById("reminderMessage").innerText = messageText;
+            alertNode.style.display = "block";
+            setTimeout(() => alertNode.style.display = "none", 4500);
+        }
+    </script>
+</body>
+</html>
+
