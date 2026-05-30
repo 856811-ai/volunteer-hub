@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VolunteerLink - Live Brampton Production System</title>
+    <style>
+        :root {
+            --dark: #111111;
+            --light: #fdfdfd;
+            --border: #222222;
+            --primary: #2563eb;
+            --success: #16a34a;
+            --warning: #ca8a04;
+            --gray-bg: #f3f4f6;
+            --text-muted: #555555;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            padding-bottom: 60px;
+        }
+
+        nav {
+            background-color: var(--dark);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .brand {
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .status-badge {
+            background-color: var(--success);
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            min-height: calc(100vh - 52px);
+        }
+
+        /* Sidebar Architecture */
+        .sidebar {
+            border-right: 3px solid var(--border);
+            padding: 24px;
+            background-color: var(--light);
+        }
+
+        .panel-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            font-weight: bold;
+            background: var(--dark);
+            color: white;
+            padding: 4px 8px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .profile-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        label {
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        input {
+            border: 2px solid var(--border);
+            padding: 8px;
+            font-size: 13px;
+            outline: none;
+            background: transparent;
+        }
+
+        input:focus {
+            background-color: #f0f7ff;
+            border-color: var(--primary);
+        }
+
+        .btn-action {
+            background-color: var(--dark);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .btn-action:hover {
+            background-color: var(--primary);
+        }
+
+        .hours-dashboard {
+            border: 2px solid var(--border);
+            padding: 16px;
+            background-color: var(--gray-bg);
+        }
+
+        .stat-display {
+            font-size: 40px;
+            font-weight: 900;
+            line-height: 1;
+            margin: 8px 0;
+        }
+
+        .progress-bar-container {
+            border: 2px solid var(--border);
+            height: 16px;
+            background: white;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Content Architecture */
+        .main-content {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tab-navigation {
+            display: flex;
+            border-bottom: 3px solid var(--border);
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 12px 24px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            border-top: 3px solid transparent;
+            margin-bottom: -3px;
+        }
+
+        .tab-btn.active {
+            border: 3px solid var(--border);
+            border-bottom: 3px solid var(--light);
+            background: var(--light);
+            border-top: 3px solid var(--primary);
+        }
+
+        .filter-strip {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: white;
+            border: 2px solid var(--border);
+            padding: 4px 12px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .filter-btn.active {
+            background: var(--dark);
+            color: white;
+        }
+
+        /* Fixed Google Maps Integration Frame */
+        .map-outer-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .google-maps-iframe-container {
+            border: 3px solid var(--border);
+            width: 100%;
+            height: 300px;
+            background-color: #e5e7eb;
+        }
+
+        .google-maps-iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        /* Opportunities Layout Shelf */
+        .view-panel {
+            display: none;
+        }
+
+        .view-panel.active-panel {
+            display: block;
+        }
+
+        .opportunities-shelf {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .opportunity-card {
+            border: 2px solid var(--border);
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card-header {
+            padding: 12px;
+            border-bottom: 1px dashed var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .interest-tag {
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+        }
+
+        .hours-badge {
+            font-size: 11px;
+            font-weight: bold;
+            background: var(--dark);
+            color: white;
+            padding: 2px 6px;
+        }
+
+        .card-body {
+            padding: 12px;
+            flex-grow: 1;
+        }
+
+        .card-body h3 {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+
+        .card-body p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .meta-line {
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+
+        .card-footer {
+            padding: 12px;
+            background: var(--gray-bg);
+            border-top: 2px solid var(--border);
+        }
+
+        .btn-trigger {
+            width: 100%;
+            color: white;
+            border: none;
+            padding: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 11px;
+        }
+
+        .btn-register-action { background-color: var(--primary); }
+        .btn-complete-action { background-color: var(--warning); }
+
+        .status-pill {
+            display: inline-block;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 6px;
+            text-transform: uppercase;
+            border: 1px solid var(--border);
+        }
+
+        .status-pill.pending { background: #ffedd5; color: #ea580c; }
+        .status-pill.done { background: #dcfce7; color: #16a34a; }
+
+        .reminder-box {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #fef08a;
+            border: 2px solid var(--border);
+            padding: 12px;
+            max-width: 320px;
+            display: none;
+            box-shadow: 4px 4px 0px var(--border);
+            z-index: 200;
+            font-size: 12px;
+        }
+
+        .no-records {
+            grid-column: 1 / -1;
+            padding: 32px;
+            text-align: center;
+            border: 2px dashed var(--border);
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="brand">🥇 VOLUNTEERLINK - LIVE BRAMPTON GEOGRAPHIC SYSTEM</div>
+        <div class="status-badge">PRODUCTION VERIFIED</div>
+    </nav>
+
+    <div class="app-grid">
+        <aside class="sidebar">
+            <span class="panel-title">1. Student Profile Context</span>
+            <form class="profile-form" id="profileForm" onsubmit="event.preventDefault(); updateProfile();">
+                <div class="form-group">
+                    <label for="studentName">Student Name</label>
+                    <input type="text" id="studentName" value="Alex Mercer" required>
+                </div>
+                <div class="form-group">
+                    <label for="targetHours">Target Goal Milestone</label>
+                    <input type="number" id="targetHours" value="40" min="1" required>
+                </div>
+                <button type="submit" class="btn-action">Update Core Accounts</button>
+            </form>
+
+            <span class="panel-title">3. Verified Audit Ledger</span>
+            <div class="hours-dashboard">
+                <label id="displayStudent">Alex Mercer's Balance</label>
+                <div class="stat-display"><span id="currentHours">0</span>/<span id="goalHours">40</span></div>
+                <div class="meta-line" style="font-weight: bold; color: var(--success);" id="percentText">0% Verified & Credited</div>
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('available', this)">Available Tasks</button>
+                <button class="tab-btn" onclick="switchTab('registrations', this)">My Registrations (<span id="regCount">0</span>)</button>
+            </div>
+
+            <div id="panelAvailable" class="view-panel active-panel">
+                <div class="map-outer-wrap">
+                    <label>Live Google Maps City View (Updates address target dynamically):</label>
+                    <div class="google-maps-iframe-container">
+                        <iframe 
+                            id="liveGMap"
+                            src="https://maps.google.com/maps?q=Brampton,ON&t=&z=13&ie=UTF8&iwloc=&output=embed" 
+                            allowfullscreen="" 
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+
+                <div class="filter-strip" style="margin-top: 16px;">
+                    <label>Category Filter:</label>
+                    <button class="filter-btn active" onclick="filterCategory('all', this)">[Show All Classes]</button>
+                    <button class="filter-btn" onclick="filterCategory('Environment', this)">Environment</button>
+                    <button class="filter-btn" onclick="filterCategory('Recreation', this)">Recreation</button>
+                    <button class="filter-btn" onclick="filterCategory('Community', this)">Community</button>
+                    <button class="filter-btn" onclick="filterCategory('Healthcare', this)">Healthcare</button>
+                    <button class="filter-btn" onclick="filterCategory('Grocery', this)">Grocery</button>
+                    <button class="filter-btn" onclick="filterCategory('Education', this)">Education</button>
+                </div>
+
+                <div class="opportunities-shelf" id="availableContainer"></div>
+            </div>
+            
+            <div id="panelRegistrations" class="view-panel">
+                <div class="opportunities-shelf" id="registrationsContainer"></div>
+            </div>
+        </main>
+    </div>
+
+    <div class="reminder-box" id="reminderAlert">
+        <div style="font-weight: bold; color: var(--primary); margin-bottom: 4px;">📡 SYSTEM EVENT LOGGER</div>
+        <div id="reminderMessage"></div>
+    </div>
+
+    <script>
+        const appState = {
+            studentName: "Alex Mercer",
+            targetHours: 40,
+            completedHours: 0,
+            currentCategoryFilter: "all"
+        };
+
+        // Real Physical Facilities and Address Metrics in Brampton, ON
+        const realBramptonDatabase = [
+            { id: 1, title: "Conservation Trail & Grounds Maintenance", category: "Environment", location: "Chinguacousy Park, 9050 Bramalea Rd, Brampton", hours: 4, description: "Assist environmental staff in sorting recycling drop-offs and cleanup operations along primary trail loops." },
+            { id: 2, title: "Youth Community Sports Coordination Aide", category: "Recreation", location: "Gore Meadows Community Centre, 10150 The Gore Rd, Brampton", hours: 5, description: "Help setup equipment and monitor active scoring infrastructure for regional youth basketball brackets." },
+            { id: 3, title: "Afterschool Peer Tutoring & Reading Mentor", category: "Community", location: "Brampton Library - Mount Pleasant Village Branch, 100 Commuter Dr, Brampton", hours: 3, description: "Provide direct study circle support to primary grade school students struggling with math homework cycles." },
+            { id: 4, title: "Food Sortation & Inventory Allocation", category: "Community", location: "Regeneration Outreach Community, 156 Main St N, Brampton", hours: 6, description: "Sort incoming regional food drives and stock essential nutritional hampers for local distribution pathways." },
+            { id: 5, title: "Aquatic Event Assistant & Equipment Supervisor", category: "Recreation", location: "Cassie Campbell Community Centre, 1050 Sandalwood Pkwy W, Brampton", hours: 4, description: "Support local swim event check-ins, handout logs, and maintain deck perimeter logistics." },
+            { id: 6, title: "Tech Literacy Circle Support Leader", category: "Community", location: "Brampton Library - Springdale Branch, 10705 Bramalea Rd, Brampton", hours: 3, description: "Guide senior citizens through local library app access steps, email setups, and essential desktop navigation safety." },
+            { id: 7, title: "Brampton Civic Hospital", category: "Healthcare", location: " 2100 Bovaird Dr E, Brampton, ON L6R 3J7", hours: 10, description: "Assist healthcare staff in various administrative and support roles." },
+            { id: 8, title: "Grocery Delivery Support for Seniors", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Help deliver groceries to senior citizens who are unable to leave their homes." },
+            { id: 9, title: "Educational Workshop Assistant at Peel District School Board", category: "Education", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 5, description: "Support educational workshops and events organized by the Peel District School Board." },
+            { id: 10, title: "Brampton Food Bank Volunteer", category: "Community", location: "169 Main St N, Brampton", hours: 6, description: "Assist in sorting and distributing food donations at the Brampton Food Bank." },
+            {id: 11, title: "Brampton Parks Cleanup Crew", category: "Environment", location: "Heart Lake Conservation Area, 10818 Heart Lake Rd, Brampton", hours: 4, description: "Join the cleanup crew to help maintain the beauty of Brampton's parks and natural areas." },
+            { id: 12, title: "Community Event Setup at Brampton City Hall", category: "Community", location: "2 Wellington St W, Brampton", hours: 3, description: "Assist in setting up for community events and gatherings at Brampton City Hall." },
+            {id:13, title: "Brampton Animal Shelter Volunteer", category: "Community", location: "20350 Heart Lake Rd, Brampton", hours: 5, description: "Help care for animals at the Brampton Animal Shelter, including feeding, cleaning, and socializing with the animals." },
+            { id: 14, title: "Brampton Public Library Book Sorting", category: "Education", location: "Brampton Library - South Fletchers Branch, 65 Queen St S, Brampton", hours: 3, description: "Assist in sorting and organizing books at the Brampton Public Library." },
+            { id: 15, title: "Pharmacy", category: "Healthcare", location: "Brampton Pharmacy, 150 Dwyer Dr, Brampton", hours: 4, description: "Help maintain the community garden by planting, weeding, and watering the plants." },
+            {id: 16, title: "Brampton Community Garden Volunteer", category: "Environment", location: "Brampton Community Garden, 50 Main St S, Brampton", hours: 4, description: "Help maintain the community garden by planting, weeding, and watering the plants." },
+            {id: 17, title: "Brampton Senior Center Activity Assistant", category: "Community", location: "Brampton Senior Center, 129 Queen St E, Brampton", hours: 3, description: "Assist in organizing and facilitating activities for seniors at the Brampton Senior Center." },
+            {id: 18, title: "Brampton Youth Sports Coaching Assistant", category: "Recreation", location: "Brampton Soccer Centre, 1495 Sandalwood Pkwy E, Brampton", hours: 5, description: "Support youth sports coaching sessions by helping with drills, organizing equipment, and providing encouragement to young athletes." },
+            {id: 19, title: "Brampton Environmental Education Program Volunteer", category: "Environment", location: "Chinguacousy Park, 9050 Bramalea Rd, Brampton", hours: 4, description: "Assist in delivering environmental education programs to local schools and community groups at Chinguacousy Park." },
+            {id: 20, title: "Brampton Food Delivery Volunteer", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Help deliver groceries to families in need through local food delivery programs in Brampton." },
+            {id: 21, title: "Brampton Public Art Installation Support", category: "Community", location: "Various locations across Brampton", hours: 3, description: "Assist in setting up and supporting public art installations and events throughout the city of Brampton." },
+            {id: 22, title: "Brampton Community Outreach Volunteer", category: "Community", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 4, description: "Support community outreach initiatives by helping to distribute information and resources to local residents." },
+            {id: 23, title: "Brampton Public Library Tech Support Volunteer", category: "Education", location: "Brampton Library - North East Branch, 70 Westwind Dr, Brampton", hours: 3, description: "Assist library patrons with basic tech support and guidance on using library resources." },
+            {id: 24, title: "Brampton Community Health Clinic Volunteer", category: "Healthcare", location: "Brampton Community Health Centre, 40 Ray Lawson Blvd, Brampton", hours: 5, description: "Support the community health clinic by assisting with administrative tasks and patient support." },
+            {id: 25, title: "Brampton Youth Mentorship Program Volunteer", category: "Community", location: "Brampton Civic Centre, 150 Central Park Dr, Brampton", hours: 4, description: "Mentor local youth through the Brampton Youth Mentorship Program, providing guidance and support to help them achieve their goals." },
+            {id: 26, title: "Brampton Public Library Storytime Assistant", category: "Education", location: "Brampton Library - Mount Pleasant Village Branch, 100 Commuter Dr, Brampton", hours: 3, description: "Assist with children's storytime sessions at the Brampton Public Library, helping to engage young readers and foster a love of books." },
+            {id: 27, title: "Brampton Community Recycling Program Volunteer", category: "Environment", location: "Brampton Recycling Centre, 1290 Williams Pkwy, Brampton", hours: 4, description: "Support the community recycling program by helping to sort and manage recyclable materials at the Brampton Recycling Centre." },
+            {id: 28, title: "Brampton Senior Grocery Assistance Volunteer", category: "Grocery", location: "Multiple locations across Brampton", hours: 4, description: "Assist senior citizens with grocery shopping and delivery through local assistance programs in Brampton." },
+            {id: 29, title: "Brampton Public Library Language Support Volunteer", category: "Education", location: "Brampton Library - Springdale Branch, 10705 Bramalea Rd, Brampton", hours: 3, description: "Provide language support and assistance to library patrons who are non-native English speakers." },
+            {id: 30, title: "Brampton Community Festival Volunteer", category: "Community", location: "Various locations across Brampton", hours: 5, description: "Help organize and support community festivals and events throughout the city of Brampton." },
+            {id: 31, title: "Brampton Public Library Homework Help Volunteer", category: "Education", location: "Brampton Library - South Fletchers Branch, 65 Queen St S, Brampton", hours: 3, description: "Assist students with homework and study support at the Brampton Public Library." },
+        ]; 
+
+        const userRegistrations = [];
+
+        window.onload = function() {
+            renderAvailableOpportunities();
+            renderRegistrations();
+            calculateMetrics();
+        };
+
+        function switchTab(tabTarget, tabButton) {
+            document.querySelectorAll(".tab-btn").forEach(btn => btn.classList.remove("active"));
+            document.querySelectorAll(".view-panel").forEach(panel => panel.classList.remove("active-panel"));
+            
+            tabButton.classList.add("active");
+            if (tabTarget === 'available') {
+                document.getElementById("panelAvailable").classList.add("active-panel");
+                renderAvailableOpportunities();
+            } else {
+                document.getElementById("panelRegistrations").classList.add("active-panel");
+                renderRegistrations();
+            }
+        }
+
+        function filterCategory(category, buttonElement) {
+            appState.currentCategoryFilter = category;
+            document.querySelectorAll(".filter-btn").forEach(btn => btn.classList.remove("active"));
+            buttonElement.classList.add("active");
+            renderAvailableOpportunities();
+        }
+
+        function updateMapLocation(addressString) {
+            const mapIframe = document.getElementById("liveGMap");
+            if (mapIframe) {
+                mapIframe.src = `https://maps.google.com/maps?q=${encodeURIComponent(addressString)}&t=&z=15&ie=UTF8&iwloc=&output=embed`;
+            }
+        }
+
+        function renderAvailableOpportunities() {
+            const container = document.getElementById("availableContainer");
+            container.innerHTML = "";
+
+            let targetData = realBramptonDatabase.filter(op => !userRegistrations.some(reg => reg.id === op.id));
+
+            if (appState.currentCategoryFilter !== "all") {
+                targetData = targetData.filter(op => op.category === appState.currentCategoryFilter);
+            }
+
+            if (targetData.length === 0) {
+                container.innerHTML = `<div class="no-records">No available community roles matching specified tracking configuration.</div>`;
+                return;
+            }
+
+            targetData.forEach(item => {
+                const card = document.createElement("div");
+                card.className = "opportunity-card";
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="interest-tag">${item.category}</span>
+                        <span class="hours-badge">${item.hours} New Hrs</span>
+                    </div>
+                    <div class="card-body" style="cursor: pointer;" onclick="updateMapLocation('${item.location}')">
+                        <h3>${item.title}</h3>
+                        <p>${item.description}</p>
+                        <div class="meta-line" style="color: var(--primary);"><strong>📍 Location (Click to track on map):</strong></div>
+                        <div class="meta-line" style="font-size:11px; font-style:italic;">${item.location}</div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-trigger btn-register-action" onclick="registerOpportunity(${item.id})">
+                            Register For Role
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderRegistrations() {
+            const container = document.getElementById("registrationsContainer");
+            container.innerHTML = "";
+
+            document.getElementById("regCount").innerText = userRegistrations.length;
+
+            if (userRegistrations.length === 0) {
+                container.innerHTML = `<div class="no-records">No tracked shifts logged yet. Register for available classes above to trigger data records.</div>`;
+                return;
+            }
+
+            userRegistrations.forEach(item => {
+                const isPending = item.status === "pending";
+                
+                const card = document.createElement("div");
+                card.className = "opportunity-card";
+                card.innerHTML = `
+                    <div class="card-header">
+                        <span class="status-pill ${item.status}">${item.status}</span>
+                        <span class="hours-badge">${item.hours} Hrs</span>
+                    </div>
+                    <div class="card-body">
+                        <h3>${item.title}</h3>
+                        <div class="meta-line"><strong>📍 Venue Node:</strong> ${item.location}</div>
+                    </div>
+                    <div class="card-footer">
+                        ${isPending ? `
+                            <button class="btn-trigger btn-complete-action" onclick="claimJobHours(${item.id})">
+                                Mark Completed (Claim Metric Hours)
+                            </button>
+                        ` : `
+                            <button class="btn-trigger" style="background:#d1d5db; color:#4b5563; cursor:not-allowed;" disabled>
+                                ✓ Hours Credited & Audited
+                            </button>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function registerOpportunity(id) {
+            const matchedItem = realBramptonDatabase.find(op => op.id === id);
+            if (matchedItem) {
+                userRegistrations.push({
+                    ...matchedItem,
+                    status: "pending"
+                });
+                triggerTelemetryAlert(`Registered: ${matchedItem.title}. Check the 'My Registrations' tab to mark it completed when your shift ends.`);
+                renderAvailableOpportunities();
+                document.getElementById("regCount").innerText = userRegistrations.length;
+            }
+        }
+
+        function claimJobHours(id) {
+            const record = userRegistrations.find(reg => reg.id === id);
+            if (record && record.status === "pending") {
+                record.status = "done";
+                appState.completedHours += record.hours;
+                
+                triggerTelemetryAlert(`Transaction confirmed! +${record.hours} hours added to verified balance for: ${record.title}.`);
+                calculateMetrics();
+                renderRegistrations();
+            }
+        }
+
+        function calculateMetrics() {
+            document.getElementById("currentHours").innerText = appState.completedHours;
+            document.getElementById("goalHours").innerText = appState.targetHours;
+            document.getElementById("displayStudent").innerText = `${appState.studentName}'s Balance`;
+
+            const computedPercentage = Math.min(Math.round((appState.completedHours / appState.targetHours) * 100), 100);
+            document.getElementById("percentText").innerText = `${computedPercentage}% Verified & Credited`;
+            document.getElementById("progressFill").style.width = `${computedPercentage}%`;
+        }
+
+        function updateProfile() {
+            const enteredName = document.getElementById("studentName").value.trim();
+            const enteredHours = parseInt(document.getElementById("targetHours").value, 10);
+
+            if (enteredName) appState.studentName = enteredName;
+            if (enteredHours > 0) appState.targetHours = enteredHours;
+
+            calculateMetrics();
+            triggerTelemetryAlert("Account metadata updated systematically.");
+        }
+
+        function triggerTelemetryAlert(messageText) {
+            const alertNode = document.getElementById("reminderAlert");
+            document.getElementById("reminderMessage").innerText = messageText;
+            alertNode.style.display = "block";
+            
+            setTimeout(() => {
+                alertNode.style.display = "none";
+            }, 4500);
+        }
+    </script>
+</body>
+</html>
